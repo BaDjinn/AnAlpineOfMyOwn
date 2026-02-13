@@ -1,32 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
+<script>
+"use strict";
+window.onload = function () {
+  console.log("Boot: avvio V86Starter");
+  var emulator = new V86Starter({
+    wasm_path: "v86.wasm",
+    memory_size: 128 * 1024 * 1024,   // tieni 128MB per provare
+    vga_memory_size: 8 * 1024 * 1024,
+    screen_container: document.getElementById("screen_container"),
+    bios: { url: "bios/seabios.bin" },
+    vga_bios: { url: "bios/vgabios.bin" },
+    cdrom: { url: "images/alpine.iso" },
+    autostart: true,
+  });
 
-<head>
-    <meta charset="UTF-8">
-    <title>My Browser OS</title>
-    <script src="libv86.js"></script>
-</head>
-
-<body>
-    <div id="screen_container">
-        <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
-        <canvas style="display: none"></canvas>
-    </div>
-    <script>
-        "use strict";
-        window.onload = function () {
-            var emulator = new V86Starter({
-                wasm_path: "v86.wasm",
-                memory_size: 256 * 1024 * 1024,
-                vga_memory_size: 8 * 1024 * 1024,
-                screen_container: document.getElementById("screen_container"),
-                bios: { url: "bios/seabios.bin" },
-                vga_bios: { url: "bios/vgabios.bin" },
-                cdrom: { url: "images/alpine.iso" },
-                autostart: true,
-            });
-        };
-    </script>
-</body>
-
-</html>
+  // Eventi utili di debug:
+  emulator.add_listener("emulator-ready", () => {
+    console.log("V86: emulator-ready");
+  });
+  emulator.add_listener("download-progress", (e) => {
+    // e.loaded, e.total, e.file
+    if (e.total) {
+      const pct = ((e.loaded / e.total) * 100).toFixed(1);
+      console.log(`Download ${e.file || ""}: ${pct}%`);
+    } else {
+      console.log(`Download ${e.file || ""}: ${e.loaded} bytes`);
+    }
+  });
+  emulator.add_listener("download-error", (e) => {
+    console.error("Download error:", e);
+  });
+  emulator.add_listener("cpu-run", () => console.log("V86: cpu-run"));
+  emulator.add_listener("cpu-stop", () => console.log("V86: cpu-stop"));
+};
+</script>
